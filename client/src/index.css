@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #08080A;
+    --border-color: #1E1E28;
+  }
+  
+  body {
+    background-color: #08080A;
+    color: #F3F3F6;
+    overflow-x: hidden;
+  }
+}
+
+/* Technical grid background */
+.grid-bg {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #08080A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E1E28;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2E2E3C;
+}
+
+/* Subtle glow */
+.green-glow {
+  box-shadow: 0 0 20px -5px rgba(0, 255, 102, 0.25);
+}
+
+.green-border-glow {
+  box-shadow: 0 0 12px -2px rgba(0, 255, 102, 0.15);
+}
