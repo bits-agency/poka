@@ -1,0 +1,15 @@
+{
+  "name": "POKA",
+  "propertyType": "website",
+  "propertyUrl": "https://github.com/bits-agency/poka",
+  "budget": 10,
+  "skillFilters": [],
+  "locationFilters": [],
+  "questions": [
+    {
+      "id": "q1",
+      "text": "How well does POKA turn natural language promises into programmable economic agreements with Sentinel escrow monitoring on Celo?",
+      "type": "freeform"
+    }
+  ]
+}
