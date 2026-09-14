@@ -87,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, selected
 
           <div className="flex items-center space-x-2 px-3 py-1.5 rounded bg-[#121217] border border-[#1E1E28] text-xs font-mono">
             <div className="w-2 h-2 rounded-full bg-[#00FF66]/80"></div>
-            <span className="text-[#F3F3F6]">0x0eD...69E</span>
+            <span className="text-[#F3F3F6]">0x26F...8367</span>
             <span className="text-[#848494] hidden md:inline">| Agent Active</span>
           </div>
         </div>
