@@ -75,9 +75,10 @@ npm run dev
 ```env
 PORT=3005
 DEMO_MODE=true
-CELO_RPC_URL=https://forno.celo-sepolia.celo-testnet.org
-CELO_ATTRIBUTION_TAG=poka-agent-work-v1
-CELO_PRIVATE_KEY= # optional for real live testnet broadcast
+CELO_RPC_URL=https://forno.celo.org
+CELO_ATTRIBUTION_TAG=celo_fb00f20ea4e8
+CELO_WALLET_ADDRESS=0x26Fe17768374a18db647b4c9eDCDAcff4fA98367
+CELO_PRIVATE_KEY= # optional for real live mainnet broadcast
 ```
 
 ---
