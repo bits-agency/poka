@@ -41,7 +41,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ status }) => {
           <div className="flex items-center space-x-1.5">
             <span className="text-[#505060]">ATTRIBUTION:</span>
             <span className="text-[#848494] bg-[#121217] px-1.5 py-0.5 rounded border border-[#1E1E28] text-[10px]">
-              poka-agent-work-v1
+              celo_fb00f20ea4e8
             </span>
           </div>
           <div className="flex items-center space-x-1.5">
