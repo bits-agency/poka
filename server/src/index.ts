@@ -28,7 +28,12 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`[POKA SERVER] Running on port ${PORT}`);
-  console.log(`[POKA SERVER] Celo Network: ${process.env.DEMO_MODE === 'false' ? 'Celo Sepolia (Live)' : 'Demo Sandbox'}`);
-});
+if (!process.env.VERCEL && !process.env.SERVERLESS) {
+  app.listen(PORT, () => {
+    console.log(`[POKA SERVER] Running on port ${PORT}`);
+    console.log(`[POKA SERVER] Celo Network: ${process.env.DEMO_MODE === 'false' ? 'Celo Sepolia (Live)' : 'Demo Sandbox'}`);
+  });
+}
+
+export { app };
+export default app;

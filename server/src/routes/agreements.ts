@@ -10,7 +10,7 @@ import { Agreement, AutonomyLevel } from '../types/shared.js';
 export const agreementsRouter = Router();
 
 // Parse natural language agreement instruction
-agreementsRouter.post('/parse', (req, res) => {
+agreementsRouter.post('/parse', async (req, res) => {
   try {
     const { prompt } = req.body;
     if (!prompt || typeof prompt !== 'string') {
@@ -18,7 +18,7 @@ agreementsRouter.post('/parse', (req, res) => {
       return;
     }
 
-    const parsed = AgreementParser.parse(prompt);
+    const parsed = await AgreementParser.parse(prompt);
     res.json(parsed);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to parse agreement instruction' });

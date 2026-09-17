@@ -15,6 +15,9 @@ dist/
 dist-ssr/
 build/
 *.local
+server/data/
+shared/types/*.js
+shared/types/*.d.ts
 
 # Logs
 npm-debug.log*

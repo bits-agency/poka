@@ -10,8 +10,8 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@poka/shared": ["../shared/types/index.ts"]
+      "@poka/shared": ["./src/types/shared.ts"]
     }
   },
-  "include": ["src/**/*", "../shared/types/**/*"]
+  "include": ["src/**/*"]
 }

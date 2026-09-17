@@ -1,6 +1,6 @@
 import { Agreement, AgreementEvent, Transaction, SentinelStatus, ParsedAgreementInput } from '@poka/shared';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const api = {
   async parseAgreement(prompt: string): Promise<ParsedAgreementInput> {

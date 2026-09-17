@@ -1,136 +1,95 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Agreement, AgreementEvent, Transaction, SentinelStatus } from '../types/shared.js';
+
+interface StorageSchema {
+  agreements: Record<string, Agreement>;
+  events: Record<string, AgreementEvent[]>;
+  transactions: Record<string, Transaction>;
+  counter: number;
+}
 
 class DataStore {
   private agreements: Map<string, Agreement> = new Map();
   private events: Map<string, AgreementEvent[]> = new Map();
   private transactions: Map<string, Transaction> = new Map();
   private counter: number = 1;
+  private filePath: string;
 
   constructor() {
-    this.seedInitialData();
+    // Resolve safe persistence path (works in local, Render, or /tmp in serverless)
+    let storageDir = process.env.DATA_DIR;
+    if (!storageDir) {
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        storageDir = '/tmp';
+      } else {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        storageDir = path.resolve(__dirname, '../../data');
+      }
+    }
+
+    try {
+      if (!fs.existsSync(storageDir)) {
+        fs.mkdirSync(storageDir, { recursive: true });
+      }
+    } catch {
+      storageDir = '/tmp';
+    }
+
+    this.filePath = path.join(storageDir, 'poka-db.json');
+    this.loadFromDisk();
   }
 
-  private seedInitialData() {
-    // Agreement #POKA-012: Research Agent -> Data Agent
-    const a2: Agreement = {
-      id: 'poka-012',
-      humanReadableId: 'POKA-012',
-      initiator: 'Research Agent (0x7F9...41a)',
-      counterparty: 'Data Agent (0x3E1...90c)',
-      counterpartyType: 'agent',
-      amount: 2.0,
-      currency: 'USDC',
-      condition: 'Verified on-chain dataset delivery (CID: bafybeic...74)',
-      deadline: '12 Hours',
-      status: 'ESCROWED',
-      autonomyLevel: 'AUTONOMOUS',
-      escrowAddress: '0x8b32A1387D095fBf63c80F951478149A7cf79311',
-      escrowFunded: true,
-      conditionSatisfied: false,
-      createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    };
+  private loadFromDisk(): void {
+    try {
+      if (fs.existsSync(this.filePath)) {
+        const raw = fs.readFileSync(this.filePath, 'utf-8');
+        const data: StorageSchema = JSON.parse(raw);
 
-    // Agreement #POKA-013: Alice -> Bob
-    const a3: Agreement = {
-      id: 'poka-013',
-      humanReadableId: 'POKA-013',
-      initiator: 'Alice (0x71C...49b)',
-      counterparty: 'Bob (0x84C...01b)',
-      counterpartyType: 'human',
-      amount: 30.0,
-      currency: 'USD',
-      condition: 'Figma wireframes review and approval',
-      deadline: '48 Hours',
-      status: 'MONITORING',
-      autonomyLevel: 'ASSISTED',
-      escrowAddress: '0x5C49A2dE539744cb89d97B2cfD355152a5509930',
-      escrowFunded: true,
-      conditionSatisfied: false,
-      createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 1).toISOString(),
-    };
-
-    this.agreements.set(a2.id, a2);
-    this.agreements.set(a3.id, a3);
-    // User agreements will start at POKA-001!
-    this.counter = 1;
-
-    this.events.set(a2.id, [
-      {
-        id: 'ev-201',
-        agreementId: a2.id,
-        type: 'AGREEMENT_CREATED',
-        message: 'Autonomous economic agreement created via agent handshake.',
-        timestamp: a2.createdAt,
-        actor: 'BUYER_AGENT',
-      },
-      {
-        id: 'ev-202',
-        agreementId: a2.id,
-        type: 'ESCROW_FUNDED',
-        message: '2 USDC locked into escrow contract on Celo Sepolia.',
-        timestamp: new Date(Date.now() - 3600000 * 2.5).toISOString(),
-        actor: 'POKA SENTINEL',
-      },
-      {
-        id: 'ev-203',
-        agreementId: a2.id,
-        type: 'MONITORING_ACTIVE',
-        message: 'Sentinel monitoring IPFS data feed condition.',
-        timestamp: a2.updatedAt,
-        actor: 'POKA SENTINEL',
+        if (data.agreements) {
+          for (const [k, v] of Object.entries(data.agreements)) {
+            this.agreements.set(k, v);
+          }
+        }
+        if (data.events) {
+          for (const [k, v] of Object.entries(data.events)) {
+            this.events.set(k, v);
+          }
+        }
+        if (data.transactions) {
+          for (const [k, v] of Object.entries(data.transactions)) {
+            this.transactions.set(k, v);
+          }
+        }
+        if (typeof data.counter === 'number') {
+          this.counter = data.counter;
+        }
       }
-    ]);
+    } catch (err) {
+      console.warn('[POKA DB] No existing DB file or failed to read. Starting with clean state.');
+    }
+  }
 
-    this.events.set(a3.id, [
-      {
-        id: 'ev-301',
-        agreementId: a3.id,
-        type: 'AGREEMENT_CREATED',
-        message: 'Agreement created: Alice -> Bob for $30 Figma wireframes.',
-        timestamp: a3.createdAt,
-        actor: 'INITIATOR',
-      },
-      {
-        id: 'ev-302',
-        agreementId: a3.id,
-        type: 'ESCROW_FUNDED',
-        message: '$30 deposited into escrow.',
-        timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
-        actor: 'SYSTEM',
-      },
-      {
-        id: 'ev-303',
-        agreementId: a3.id,
-        type: 'MONITORING_ACTIVE',
-        message: 'Sentinel waiting for design milestone approval.',
-        timestamp: a3.updatedAt,
-        actor: 'POKA SENTINEL',
-      }
-    ]);
-
-    this.transactions.set('tx-201', {
-      id: 'tx-201',
-      agreementId: a2.id,
-      humanReadableId: a2.humanReadableId,
-      txHash: '0x8f23791a84f39e31d9e2908f912c9b4e12c418ef009a7b9319e34c910129a081',
-      chain: 'Celo Sepolia (11142222)',
-      amount: 2.0,
-      currency: 'USDC',
-      status: 'CONFIRMED',
-      type: 'ESCROW_DEPOSIT',
-      from: '0x7F9...41a',
-      to: a2.escrowAddress!,
-      createdAt: a2.createdAt,
-      attributionTag: 'poka-agent-work-v1',
-      blockNumber: 4210992,
-    });
+  private saveToDisk(): void {
+    try {
+      const data: StorageSchema = {
+        agreements: Object.fromEntries(this.agreements.entries()),
+        events: Object.fromEntries(this.events.entries()),
+        transactions: Object.fromEntries(this.transactions.entries()),
+        counter: this.counter,
+      };
+      fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('[POKA DB] Persistence write skipped:', (err as Error)?.message);
+    }
   }
 
   public getNextHumanReadableId(): string {
     const id = `POKA-${String(this.counter).padStart(3, '0')}`;
     this.counter++;
+    this.saveToDisk();
     return id;
   }
 
@@ -141,12 +100,15 @@ class DataStore {
   }
 
   public getAgreement(id: string): Agreement | undefined {
-    return this.agreements.get(id) || Array.from(this.agreements.values()).find(a => a.humanReadableId.toLowerCase() === id.toLowerCase());
+    return this.agreements.get(id) || Array.from(this.agreements.values()).find(
+      a => a.humanReadableId.toLowerCase() === id.toLowerCase()
+    );
   }
 
   public saveAgreement(agreement: Agreement): Agreement {
     agreement.updatedAt = new Date().toISOString();
     this.agreements.set(agreement.id, agreement);
+    this.saveToDisk();
     return agreement;
   }
 
@@ -160,6 +122,7 @@ class DataStore {
     const list = this.events.get(agreementId) || [];
     list.push(newEvent);
     this.events.set(agreementId, list);
+    this.saveToDisk();
     return newEvent;
   }
 
@@ -169,6 +132,7 @@ class DataStore {
 
   public addTransaction(tx: Transaction): Transaction {
     this.transactions.set(tx.id, tx);
+    this.saveToDisk();
     return tx;
   }
 
@@ -182,14 +146,27 @@ class DataStore {
     const active = Array.from(this.agreements.values()).filter(
       a => a.status === 'ESCROWED' || a.status === 'MONITORING' || a.status === 'CONDITION_MET'
     );
-    const totalEscrow = active.reduce((sum, a) => sum + (a.escrowFunded ? a.amount : 0), 3450);
+    const totalEscrow = active.reduce((sum, a) => sum + (a.escrowFunded ? a.amount : 0), 0);
+
+    const isLive = process.env.DEMO_MODE === 'false';
+    const network = isLive
+      ? (process.env.CELO_NETWORK === 'mainnet' ? 'CELO_MAINNET' : 'CELO_SEPOLIA')
+      : 'DEMO_SANDBOX';
 
     return {
-      activeSentinelsCount: Math.max(active.length, 4),
+      activeSentinelsCount: active.length,
       totalInEscrow: totalEscrow,
       status: 'SYNCED',
-      network: process.env.DEMO_MODE === 'false' ? 'CELO_SEPOLIA' : 'DEMO_SANDBOX',
+      network,
     };
+  }
+
+  public clearAll(): void {
+    this.agreements.clear();
+    this.events.clear();
+    this.transactions.clear();
+    this.counter = 1;
+    this.saveToDisk();
   }
 }
 
